@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sprit-Buddy by Hasi-Labs</title>
     <style>
-        /* --- PERLEFFEKT HINTERGRUND --- */
+        /* (Hintergrund und Design bleiben gleich edel wie vorher) */
         body { 
             font-family: 'Segoe UI', sans-serif; 
             background: linear-gradient(135deg, #2d0a1c, #4a0e2e, #880e4f, #fce4ec, #ffffff);
@@ -18,7 +18,6 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            overflow: hidden; /* Verhindert unnötiges Scrollen im Hintergrund */
         }
 
         @keyframes pearlAnimation {
@@ -27,32 +26,14 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* --- STERNENREGEN --- */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 200%;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><text x="10" y="30" fill="rgba(255,255,255,0.4)" font-size="20">★</text><text x="60" y="80" fill="rgba(255,255,255,0.2)" font-size="14">★</text><text x="80" y="20" fill="rgba(255,255,255,0.3)" font-size="10">★</text></svg>');
-            background-size: 150px 150px;
-            animation: starRain 20s linear infinite;
-            z-index: 0;
-            opacity: 0.4;
-        }
-
-        @keyframes starRain {
-            from { transform: translateY(0); }
-            to { transform: translateY(-50%); }
-        }
-
-        /* --- CONTAINER (Jetzt mit "Aussicht" auf den Hintergrund) --- */
         .container { 
-            background: rgba(255, 255, 255, 0.82); /* Etwas transparenter gemacht */
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(15px); 
             padding: 20px; 
             border-radius: 30px; 
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             text-align: center;
-            width: 90%; /* Nimmt nicht mehr den ganzen Platz weg */
+            width: 90%;
             max-width: 350px; 
             position: relative;
             z-index: 1;
@@ -62,14 +43,14 @@
         h1 { color: #4a0e2e; font-size: 22px; margin-bottom: 15px; }
 
         .input-group { margin-bottom: 12px; text-align: left; }
-        label { display: block; font-size: 11px; color: #4a0e2e; font-weight: bold; margin-bottom: 4px; margin-left: 5px; }
+        label { display: block; font-size: 11px; color: #4a0e2e; font-weight: bold; margin-bottom: 4px; }
         
         input { 
             width: 100%; 
             padding: 10px; 
             border: 1px solid #fce4ec; 
             border-radius: 12px;
-            font-size: 16px; /* Verhindert Zoom am iPhone */
+            font-size: 16px;
             box-sizing: border-box; 
             background: white;
         }
@@ -85,6 +66,15 @@
             cursor: pointer;
             font-size: 15px;
             margin-top: 5px;
+        }
+
+        /* --- NEU: LIVE PREIS BUTTON STYLE --- */
+        .price-check-btn {
+            background: #29abe0; /* Ko-fi Blau für Abwechslung */
+            font-size: 12px;
+            padding: 8px;
+            margin-top: 10px;
+            border-radius: 10px;
         }
 
         .route-btn { background: #4a0e2e; font-size: 12px; padding: 10px; margin-bottom: 10px; }
@@ -103,18 +93,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
-        .kofi-button {
-            background-color: #29abe0;
-            color: white;
-            text-decoration: none;
-            padding: 6px 10px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-        }
     </style>
 </head>
 <body>
@@ -126,10 +104,13 @@
         <div class="input-group"><label>Start</label><input type="text" id="start" placeholder="Berlin"></div>
         <div class="input-group"><label>Ziel</label><input type="text" id="ziel" placeholder="Hamburg"></div>
     </div>
+    
     <div id="loading">Hasi rechnet... 🐰</div>
     <button class="route-btn" onclick="getDistance()">➔ Strecke suchen ✨</button>
 
-    <div class="input-group"><label>Distanz (KM)</label><input type="number" id="km"></div>
+    <button class="price-check-btn" onclick="checkLivePrices()">🔍 Günstigste Tankstelle finden</button>
+
+    <div class="input-group" style="margin-top: 15px;"><label>Distanz (KM)</label><input type="number" id="km"></div>
     
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <div class="input-group"><label>L/100km</label><input type="number" id="verbrauch" value="7.5" step="0.1"></div>
@@ -147,11 +128,22 @@
 
     <div class="footer">
         <span style="font-weight:bold; color:#4a0e2e; font-size: 12px;">Hasi-Labs ✨</span>
-        <a href="https://ko-fi.com/hasilabs" target="_blank" class="kofi-button">Spendieren</a>
+        <a href="https://ko-fi.com/hasilabs" target="_blank" style="text-decoration:none; color:#29abe0; font-size:12px; font-weight:bold;">Spendieren ☕</a>
     </div>
 </div>
 
 <script>
+    // Funktion für Live-Preise (öffnet externe Suche für den Startort)
+    function checkLivePrices() {
+        const ort = document.getElementById('start').value;
+        if(ort) {
+            // Öffnet Clever-Tanken für den eingegebenen Ort
+            window.open(`https://www.clever-tanken.de/tankstelle_liste?ort=${encodeURIComponent(ort)}`, '_blank');
+        } else {
+            alert("🐰 Hasi braucht einen Startort, um Preise zu finden!");
+        }
+    }
+
     async function getDistance() {
         const s = document.getElementById('start').value, z = document.getElementById('ziel').value;
         if(!s || !z) return;
